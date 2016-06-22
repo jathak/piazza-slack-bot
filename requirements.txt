@@ -1,0 +1,4 @@
+slackclient
+piazza-api
+humanize
+html2text
