@@ -4,7 +4,7 @@
 
 This bot will listen for any mention of it's name (e.g. `@piazza`) followed by a post number or any Piazza post link and reply with a formatted version of the post.
 
-To configure, edit the following values in `bot.py`:
+To configure, edit the following values in `bot_config.py`:
 
 - `token` should be the bot's authorization token that you get from Slack
 - `piazza_id` should be the course ID that you want to use when the bot is given a number (you can still give links to other courses)
