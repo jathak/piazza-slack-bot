@@ -179,6 +179,7 @@ if sc.rtm_connect():
                         process_bot_call(channel, user, text)
             except Exception as e:
                 traceback.print_tb(e.__traceback__)
+                sc.rtm_connect()
         time.sleep(1)
 else:
     print("Connection Failed, invalid token?")
