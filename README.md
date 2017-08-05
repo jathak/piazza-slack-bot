@@ -1,7 +1,5 @@
 ## Piazza Slack Bot
 
-![Example](http://i.imgur.com/nQEpVr6.png)
-
 This bot will listen for any mention of it's name (e.g. `@piazza`) followed by a post number or any Piazza post link and reply with a formatted version of the post. Converting Piazza posts to Slack messages is a bit hacky (I use html2text to convert Piazza's HTML to Markdown and then I manually convert the Markdown to Slack's format), but it should work most of the time. The first image found in the post will also be embedded directly in the Slack message.
 
 To configure, edit the following values in `bot_config.py`:
