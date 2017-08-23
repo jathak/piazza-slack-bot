@@ -172,9 +172,13 @@ if sc.rtm_connect():
                     user = result['user']
                     text = result['text']
                     urls = re.findall(r'https://piazza\.com/class/([\w]+)\?cid=([\d]+)', text)
+                    at_nums = re.findaall(r'@(\d+)(?:\s|\Z|,|;|:|\.)', text)
                     if len(urls) > 0:
                         for piazza, post in urls:
-                             post_link(channel, user, post, piazza)
+                            post_link(channel, user, post, piazza)
+                    elif len(at_nums) > 0:
+                        for post in at_nums:
+                            post_link(channel, user, post, piazza_id)
                     elif bot_id in text:
                         process_bot_call(channel, user, text)
             except Exception as e:
