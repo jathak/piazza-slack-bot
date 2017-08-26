@@ -1,11 +1,12 @@
 ## Piazza Slack Bot
 
-This bot will listen for any mention of it's name (e.g. `@piazza`) followed by a
-post number, `@#`, or any Piazza post link and reply with a formatted version of
-the post. Converting Piazza posts to Slack messages is a bit hacky (I use
-html2text to convert Piazza's HTML to Markdown and then I manually convert the
-Markdown to Slack's format), but it should work most of the time. The first
-image found in the post will also be embedded directly in the Slack message.
+This bot will embed Piazza posts in Slack. Any of the following post reference
+formats can work:
+
+- Any Piazza URL that the bot account is a member of (embeds main post)
+- @&lt;bot username> &lt;post number>
+- @&lt;post number>
+- @&lt;post number>#&lt;followup number>
 
 Set the configuration values either through environment variables or manually
 in `bot_config.py`. You'll want a Piazza account dedicated to the bot (the
