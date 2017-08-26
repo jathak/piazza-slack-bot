@@ -15,13 +15,13 @@ sc = SlackClient(token)
 p = Piazza()
 p.user_login(email=piazza_email, password=piazza_password)
 
-def process_bot_call(channel, user, text):
+def process_bot_call(channel, user, text, thread=None):
     calls = text.split("<@" + bot_id + ">")[1:]
     for call in calls:
         post_id = re.search(r'\d+', call).group()
-        post_link(channel, user, post_id, piazza_id)
+        post_link(channel, user, post_id, piazza_id, thread)
 
-def post_link(channel, user, post_id, piazza_id):
+def post_link(channel, user, post_id, piazza_id, thread=None):
     title = "Piazza Post #" + post_id
     content = "Could not fetch post content"
     time = None
@@ -54,6 +54,8 @@ def post_link(channel, user, post_id, piazza_id):
         "color": "#3e7aab",
         "mrkdwn_in": ["text"]
     }
+    if thread:
+        msg['thread_ts'] = thread
     attach = json.dumps([msg])
     sc.api_call('chat.postMessage', channel=channel, attachments=attach,
                 as_user=True)
@@ -173,15 +175,18 @@ if sc.rtm_connect():
                     text = result['text']
                     urls = re.findall(r'https://piazza\.com/class/([\w]+)\?cid=([\d]+)', text)
                     at_nums = re.findall(r'@(\d+)(?:\s|\Z|,|\?|;|:|\.)', text)
+                    thread = None
+                    if 'thread_ts' in result and result['thread_ts'] != result['ts']:
+                        thread = result['thread_ts']
                     if len(urls) > 0:
                         for piazza, post in urls:
-                            post_link(channel, user, post, piazza)
+                            post_link(channel, user, post, piazza, thread)
                     elif len(at_nums) > 0:
                         for post in at_nums:
-                            post_link(channel, user, post, piazza_id)
+                            post_link(channel, user, post, piazza_id, thread)
                     elif bot_id in text:
                         print(result)
-                        process_bot_call(channel, user, text)
+                        process_bot_call(channel, user, text, thread)
             except Exception as e:
                 traceback.print_tb(e.__traceback__)
                 sc.rtm_connect()
