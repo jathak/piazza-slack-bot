@@ -45,6 +45,7 @@ def post_link(channel, user, post_id, piazza_id, thread=None, followup=None):
         post_time = datetime.strptime(timestamp, time_format)
         time = humanize.naturaltime(datetime.utcnow() - post_time)
     except:
+        traceback.print_exc()
         pass
     url = "https://piazza.com/class/" + piazza_id + "?cid=" + post_id
     footer = time
@@ -215,7 +216,6 @@ if sc.rtm_connect():
                     if len(at_nums_followup) > 0:
                         for post, followup in at_nums:
                             post_link(channel, user, post, piazza_id, thread, followup)
-                        
                     elif bot_id in text:
                         process_bot_call(channel, user, text, thread)
             except Exception as e:
