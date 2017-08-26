@@ -63,6 +63,7 @@ def post_link(channel, user, post_id, piazza_id, thread=None, followup=None):
         "mrkdwn_in": ["text"]
     }
     attach = json.dumps([msg])
+    print(attach)
     if thread:
         sc.api_call('chat.postMessage', channel=channel, attachments=attach,
                     as_user=True, thread_ts=thread)
