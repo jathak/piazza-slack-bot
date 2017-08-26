@@ -21,15 +21,14 @@ def process_bot_call(channel, user, text, thread=None):
         post_id = re.search(r'\d+', call).group()
         post_link(channel, user, post_id, piazza_id, thread)
 
-def post_link(channel, user, post_id, piazza_id, thread=None, followup=None):
-    title = "Piazza Post #" + post_id
+def make_attachment(post, network, followup):
+    title = "Piazza Post"
     content = "Could not fetch post content"
     time = None
     image = None
+    child = None
     a_name, a_photo = "", None
     try:
-        network = p.network(piazza_id)
-        post = network.get_post(post_id)
         title = post['history'][0]['subject']
         if followup:
             title = 'Followup #{} to {}'.format(followup, title)
@@ -51,7 +50,7 @@ def post_link(channel, user, post_id, piazza_id, thread=None, followup=None):
     if a_name is not None:
         footer = a_name + " - " + time
     msg = {
-        "fallback": title + ", " + url,
+        "fallback": content if followup else title + ", " + url,
         "title": title,
         "title_link": url,
         "text": content,
@@ -61,13 +60,44 @@ def post_link(channel, user, post_id, piazza_id, thread=None, followup=None):
         "color": "#3e7aab",
         "mrkdwn_in": ["text"]
     }
-    attach = json.dumps([msg])
+    return json.dumps([msg])
+
+def make_reply(reply, network):
+    content, image = format_html(reply['subject'])
+    timestamp = reply['created']
+    a_name, a_photo = find_followup_author(reply, network)
+    msg = {
+        "fallback": content
+        "text": content,
+        "footer": footer,
+        "footer_icon": a_photo,
+        "image_url": image,
+        "mrkdwn_in": ["text"]
+    }
+    return json.dumps([msg])
+    
+
+def post_link(channel, user, post_id, piazza_id, thread=None, followup=None):
+    post, network = None
+    try:
+        network = p.network(piazza_id)
+        post = network.get_post(post_id)
+    except:
+        return
+    attach = make_attachment(post, network, followup)
+    response = None
     if thread:
-        sc.api_call('chat.postMessage', channel=channel, attachments=attach,
-                    as_user=True, thread_ts=thread)
+        response = sc.api_call('chat.postMessage', channel=channel,
+            attachments=attach, as_user=True, thread_ts=thread)
     else:
-        sc.api_call('chat.postMessage', channel=channel, attachments=attach,
-                    as_user=True)
+        response = sc.api_call('chat.postMessage', channel=channel,
+            attachments=attach, as_user=True)
+    if followup and not thread:
+        for reply in post['children'][int(followup) - 1]['children']:
+            attach = make_reply(reply, network)
+            sc.api_call('chat.postMessage', channel=channel, attachments=attach,
+                as_user=True, thread_ts=response['ts'])
+        
 
 PHOTO_SERVER = "https://d1b10bmlvqabco.cloudfront.net/photos"
 
@@ -199,6 +229,8 @@ if sc.rtm_connect():
                 if result['type'] == 'message':
                     channel = result['channel']
                     user = result['user']
+                    if user == bot_id:
+                        continue
                     text = result['text']
                     urls = re.findall(r'https://piazza\.com/class/([\w]+)\?cid=([\d]+)', text)
                     at_nums = re.findall(r'@(\d+)(?:\s|\Z|,|\?|;|:|\.)', text)
