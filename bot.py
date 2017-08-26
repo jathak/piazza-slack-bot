@@ -30,6 +30,7 @@ def post_link(channel, user, post_id, piazza_id, thread=None):
     try:
         network = p.network(piazza_id)
         post = network.get_post(post_id)
+        print(post)
         title = post['history'][0]['subject']
         content, image = format_html(post['history'][0]['content'])
         timestamp = post['history'][0]['created']
@@ -187,7 +188,6 @@ if sc.rtm_connect():
                         for post in at_nums:
                             post_link(channel, user, post, piazza_id, thread)
                     elif bot_id in text:
-                        print(result)
                         process_bot_call(channel, user, text, thread)
             except Exception as e:
                 traceback.print_tb(e.__traceback__)
