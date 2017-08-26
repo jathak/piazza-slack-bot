@@ -45,7 +45,7 @@ def post_link(channel, user, post_id, piazza_id, thread=None, followup=None):
         post_time = datetime.strptime(timestamp, time_format)
         time = humanize.naturaltime(datetime.utcnow() - post_time)
     except:
-        traceback.print_exc()
+        print(title, content, time, image, a_name, a_photo)
         pass
     url = "https://piazza.com/class/" + piazza_id + "?cid=" + post_id
     footer = time
@@ -205,7 +205,6 @@ if sc.rtm_connect():
                     at_nums = re.findall(r'@(\d+)(?:\s|\Z|,|\?|;|:|\.)', text)
                     at_nums_followup = re.findall(r'@(\d+)#(\d+)(?:\s|\Z|,|\?|;|:|\.)', text)
                     thread = None
-                    print(urls, at_nums, at_nums_followup)
                     if 'thread_ts' in result and result['thread_ts'] != result['ts']:
                         thread = result['thread_ts']
                     if len(urls) > 0:
