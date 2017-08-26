@@ -54,6 +54,7 @@ def post_link(channel, user, post_id, piazza_id, thread=None):
         "color": "#3e7aab",
         "mrkdwn_in": ["text"]
     }
+    print(thread)
     if thread:
         msg['thread_ts'] = thread
     attach = json.dumps([msg])
