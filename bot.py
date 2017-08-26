@@ -55,8 +55,12 @@ def post_link(channel, user, post_id, piazza_id, thread=None):
         "mrkdwn_in": ["text"]
     }
     attach = json.dumps([msg])
-    sc.api_call('chat.postMessage', channel=channel, attachments=attach,
-                as_user=True, thread_ts=thread)
+    if thread:
+        sc.api_call('chat.postMessage', channel=channel, attachments=attach,
+                    as_user=True, thread_ts=thread)
+    else:
+        sc.api_call('chat.postMessage', channel=channel, attachments=attach,
+                    as_user=True)
 
 PHOTO_SERVER = "https://d1b10bmlvqabco.cloudfront.net/photos"
 
