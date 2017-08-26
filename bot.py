@@ -32,7 +32,7 @@ def post_link(channel, user, post_id, piazza_id, thread=None, followup=None):
         post = network.get_post(post_id)
         title = post['history'][0]['subject']
         if followup:
-            title = 'Followup #{} to "{}"'.format(followup, title)
+            title = 'Followup #{} to {}'.format(followup, title)
             child = post['children'][int(followup) - 1]
             content, image = format_html(child['subject'])
             timestamp = child['created']
