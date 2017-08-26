@@ -128,7 +128,7 @@ def find_followup_author(child, network):
         uid = child['uid'] if 'uid' in child else None
         if not uid:
             return None, None
-        user_data = network.get_users([uid)
+        user_data = network.get_users([uid])
         user = user_data[0]
         name = user['name']
         photo = None
