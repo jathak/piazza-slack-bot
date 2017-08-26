@@ -205,6 +205,7 @@ if sc.rtm_connect():
                     at_nums = re.findall(r'@(\d+)(?:\s|\Z|,|\?|;|:|\.)', text)
                     at_nums_followup = re.findall(r'@(\d+)#(\d+)(?:\s|\Z|,|\?|;|:|\.)', text)
                     thread = None
+                    print(urls, at_nums, at_nums_followup)
                     if 'thread_ts' in result and result['thread_ts'] != result['ts']:
                         thread = result['thread_ts']
                     if len(urls) > 0:
