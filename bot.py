@@ -180,6 +180,7 @@ if sc.rtm_connect():
                         for post in at_nums:
                             post_link(channel, user, post, piazza_id)
                     elif bot_id in text:
+                        print(result)
                         process_bot_call(channel, user, text)
             except Exception as e:
                 traceback.print_tb(e.__traceback__)
