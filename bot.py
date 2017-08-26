@@ -67,7 +67,7 @@ def make_reply(reply, network):
     timestamp = reply['created']
     a_name, a_photo = find_followup_author(reply, network)
     msg = {
-        "fallback": content
+        "fallback": content,
         "text": content,
         "footer": footer,
         "footer_icon": a_photo,
