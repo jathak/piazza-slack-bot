@@ -45,7 +45,6 @@ def post_link(channel, user, post_id, piazza_id, thread=None, followup=None):
         post_time = datetime.strptime(timestamp, time_format)
         time = humanize.naturaltime(datetime.utcnow() - post_time)
     except:
-        print(title, content, time, image, a_name, a_photo)
         pass
     url = "https://piazza.com/class/" + piazza_id + "?cid=" + post_id
     footer = time
@@ -63,7 +62,6 @@ def post_link(channel, user, post_id, piazza_id, thread=None, followup=None):
         "mrkdwn_in": ["text"]
     }
     attach = json.dumps([msg])
-    print(attach)
     if thread:
         sc.api_call('chat.postMessage', channel=channel, attachments=attach,
                     as_user=True, thread_ts=thread)
@@ -215,7 +213,7 @@ if sc.rtm_connect():
                         for post in at_nums:
                             post_link(channel, user, post, piazza_id, thread)
                     if len(at_nums_followup) > 0:
-                        for post, followup in at_nums:
+                        for post, followup in at_nums_followup:
                             post_link(channel, user, post, piazza_id, thread, followup)
                     elif bot_id in text:
                         process_bot_call(channel, user, text, thread)
