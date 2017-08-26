@@ -21,7 +21,7 @@ def process_bot_call(channel, user, text, thread=None):
         post_id = re.search(r'\d+', call).group()
         post_link(channel, user, post_id, piazza_id, thread)
 
-def post_link(channel, user, post_id, piazza_id, thread=None):
+def post_link(channel, user, post_id, piazza_id, thread=None, followup=None):
     title = "Piazza Post #" + post_id
     content = "Could not fetch post content"
     time = None
@@ -30,14 +30,20 @@ def post_link(channel, user, post_id, piazza_id, thread=None):
     try:
         network = p.network(piazza_id)
         post = network.get_post(post_id)
-        print(post)
         title = post['history'][0]['subject']
-        content, image = format_html(post['history'][0]['content'])
-        timestamp = post['history'][0]['created']
+        if followup:
+            title = 'Followup #{} to "{}"'.format(followup, title)
+            child = post['children'][int(followup) - 1]
+            content, image = format_html(child['subject'])
+            timestamp = child['created']
+            a_name, a_photo = find_followup_author(child, network)
+        else:
+            content, image = format_html(post['history'][0]['content'])
+            timestamp = post['history'][0]['created']
+            a_name, a_photo = find_authors(post['history'], network)
         time_format = "%Y-%m-%dT%H:%M:%SZ"
         post_time = datetime.strptime(timestamp, time_format)
         time = humanize.naturaltime(datetime.utcnow() - post_time)
-        a_name, a_photo = find_authors(post['history'], network)
     except:
         pass
     url = "https://piazza.com/class/" + piazza_id + "?cid=" + post_id
@@ -115,7 +121,25 @@ def find_authors(history, network):
     except:
         traceback.print_exc()
         return None, None
-        
+
+def find_followup_author(child, network):
+    try:
+        anon = child['anon'] != 'no'
+        uid = child['uid'] if 'uid' in child else None
+        if not uid:
+            return None, None
+        user_data = network.get_users([uid)
+        user = user_data[0]
+        name = user['name']
+        photo = None
+        if anon:
+            name += " (anon)"
+        if user['photo']:
+            photo = PHOTO_SERVER + '/' + uid + '/' + user['photo']
+        return name, photo
+    except:
+        traceback.print_exc()
+        return None, None
 
 def format_html(html):
     try:
@@ -178,15 +202,20 @@ if sc.rtm_connect():
                     text = result['text']
                     urls = re.findall(r'https://piazza\.com/class/([\w]+)\?cid=([\d]+)', text)
                     at_nums = re.findall(r'@(\d+)(?:\s|\Z|,|\?|;|:|\.)', text)
+                    at_nums_followup = re.findall(r'@(\d+)#(\d+)(?:\s|\Z|,|\?|;|:|\.)', text)
                     thread = None
                     if 'thread_ts' in result and result['thread_ts'] != result['ts']:
                         thread = result['thread_ts']
                     if len(urls) > 0:
                         for piazza, post in urls:
                             post_link(channel, user, post, piazza, thread)
-                    elif len(at_nums) > 0:
+                    if len(at_nums) > 0:
                         for post in at_nums:
                             post_link(channel, user, post, piazza_id, thread)
+                    if len(at_nums_followup) > 0:
+                        for post, followup in at_nums:
+                            post_link(channel, user, post, piazza_id, thread, followup)
+                        
                     elif bot_id in text:
                         process_bot_call(channel, user, text, thread)
             except Exception as e:
