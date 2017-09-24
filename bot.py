@@ -240,8 +240,9 @@ if sc.rtm_connect():
                         continue
                     text = result['text']
                     urls = re.findall(r'https://piazza\.com/class/([\w]+)\?cid=([\d]+)', text)
-                    at_nums = re.findall(r'@(\d+)(?:\s|\Z|,|\?|;|:|\.)', text)
-                    at_nums_followup = re.findall(r'@(\d+)#(\d+)(?:\s|\Z|,|\?|;|:|\.)', text)
+                    all_names = '|'.join(other_piazza_names)
+                    at_nums = re.findall(r'(\A|\s|' + all_names + r')@(\d+)(?:\s|\Z|,|\?|;|:|\.)', text)
+                    at_nums_followup = re.findall(r'(\A|\s|' + all_names + r')@(\d+)#(\d+)(?:\s|\Z|,|\?|;|:|\.)', text)
                     thread = None
                     if 'thread_ts' in result and result['thread_ts'] != result['ts']:
                         thread = result['thread_ts']
@@ -249,11 +250,15 @@ if sc.rtm_connect():
                         for piazza, post in urls:
                             post_link(channel, user, post, piazza, thread)
                     if len(at_nums) > 0:
-                        for post in at_nums:
-                            post_link(channel, user, post, piazza_id, thread)
+                        for course, post in at_nums:
+                            course = course.trim()
+                            pid = other_piazza_ids[other_piazza_names.index(course)] if course else piazza_id
+                            post_link(channel, user, post, pid, thread)
                     if len(at_nums_followup) > 0:
-                        for post, followup in at_nums_followup:
-                            post_link(channel, user, post, piazza_id, thread, followup)
+                        for course, post, followup in at_nums_followup:
+                            course = course.trim()
+                            pid = other_piazza_ids[other_piazza_names.index(course)] if course else piazza_id
+                            post_link(channel, user, post, pid, thread, followup)
                     elif bot_id in text:
                         process_bot_call(channel, user, text, thread)
             except Exception as e:
