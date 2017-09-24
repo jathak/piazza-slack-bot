@@ -8,7 +8,7 @@ from datetime import datetime
 import html2text
 import traceback
 
-from bot_config import token, piazza_id, piazza_email, piazza_password
+from bot_config import *
 
 bot_id = None
 sc = SlackClient(token)
@@ -248,21 +248,24 @@ if sc.rtm_connect():
                         thread = result['thread_ts']
                     if len(urls) > 0:
                         for piazza, post in urls:
+                            print(piazza, post)
                             post_link(channel, user, post, piazza, thread)
                     if len(at_nums) > 0:
                         for course, post in at_nums:
-                            course = course.trim()
+                            print(course, post)
+                            course = course.strip()
                             pid = other_piazza_ids[other_piazza_names.index(course)] if course else piazza_id
                             post_link(channel, user, post, pid, thread)
                     if len(at_nums_followup) > 0:
                         for course, post, followup in at_nums_followup:
-                            course = course.trim()
+                            print(course, post, followup)
+                            course = course.strip()
                             pid = other_piazza_ids[other_piazza_names.index(course)] if course else piazza_id
                             post_link(channel, user, post, pid, thread, followup)
                     elif bot_id in text:
                         process_bot_call(channel, user, text, thread)
             except Exception as e:
-                traceback.print_tb(e.__traceback__)
+                print(e)
                 sc.rtm_connect()
         time.sleep(1)
 else:
