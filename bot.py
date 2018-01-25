@@ -8,13 +8,6 @@ from datetime import datetime
 import html2text
 import traceback
 
-from bot_config import *
-
-bot_id = None
-sc = SlackClient(token)
-p = Piazza()
-p.user_login(email=piazza_email, password=piazza_password)
-
 def process_bot_call(channel, user, text, thread=None):
     calls = text.split("<@" + bot_id + ">")[1:]
     for call in calls:
@@ -221,52 +214,63 @@ def find_md_links(md):
     images = INLINE_IMAGE_RE.findall(md)
     return links, images
 
-if sc.rtm_connect():
-    username = sc.server.username
-    for users in sc.server.login_data['users']:
-        if users['name'] == username:
-            bot_id = users['id']
-            break
-    if not bot_id:
-        raise Error("Could not find bot")
-    while True:
-        results = sc.rtm_read()
-        for result in results:
-            try:
-                if result['type'] == 'message':
-                    channel = result['channel']
-                    user = result['user']
-                    if user == bot_id:
-                        continue
-                    text = result['text']
-                    urls = re.findall(r'https://piazza\.com/class/([\w]+)\?cid=([\d]+)', text)
-                    all_names = '|'.join(other_piazza_names)
-                    at_nums = re.findall(r'(\A|\s|' + all_names + r')@(\d+)(?:\s|\Z|,|\?|;|:|\.)', text)
-                    at_nums_followup = re.findall(r'(\A|\s|' + all_names + r')@(\d+)#(\d+)(?:\s|\Z|,|\?|;|:|\.)', text)
-                    thread = None
-                    if 'thread_ts' in result and result['thread_ts'] != result['ts']:
-                        thread = result['thread_ts']
-                    if len(urls) > 0:
-                        for piazza, post in urls:
-                            print(piazza, post)
-                            post_link(channel, user, post, piazza, thread)
-                    if len(at_nums) > 0:
-                        for course, post in at_nums:
-                            print(course, post)
-                            course = course.strip()
-                            pid = other_piazza_ids[other_piazza_names.index(course)] if course else piazza_id
-                            post_link(channel, user, post, pid, thread)
-                    if len(at_nums_followup) > 0:
-                        for course, post, followup in at_nums_followup:
-                            print(course, post, followup)
-                            course = course.strip()
-                            pid = other_piazza_ids[other_piazza_names.index(course)] if course else piazza_id
-                            post_link(channel, user, post, pid, thread, followup)
-                    elif bot_id in text:
-                        process_bot_call(channel, user, text, thread)
-            except Exception as e:
-                print(e)
-                sc.rtm_connect()
-        time.sleep(1)
-else:
-    print("Connection Failed, invalid token?")
+def handle_message(result):
+    channel = result['channel']
+    user = result['user']
+    if user == bot_id:
+        return
+    text = result['text']
+    urls = re.findall(r'https://piazza\.com/class/([\w]+)\?cid=([\d]+)', text)
+    all_names = '|'.join(other_piazza_names)
+    at_nums = re.findall(r'(\A|\s|' + all_names + r')@(\d+)(?:\s|\Z|,|\?|;|:|\.)', text)
+    at_nums_followup = re.findall(r'(\A|\s|' + all_names + r')@(\d+)#(\d+)(?:\s|\Z|,|\?|;|:|\.)', text)
+    thread = None
+    if 'thread_ts' in result and result['thread_ts'] != result['ts']:
+        thread = result['thread_ts']
+    if len(urls) > 0:
+        for piazza, post in urls:
+            print(piazza, post)
+            post_link(channel, user, post, piazza, thread)
+    if len(at_nums) > 0:
+        for course, post in at_nums:
+            print(course, post)
+            course = course.strip()
+            pid = other_piazza_ids[other_piazza_names.index(course)] if course else piazza_id
+            post_link(channel, user, post, pid, thread)
+    if len(at_nums_followup) > 0:
+        for course, post, followup in at_nums_followup:
+            print(course, post, followup)
+            course = course.strip()
+            pid = other_piazza_ids[other_piazza_names.index(course)] if course else piazza_id
+            post_link(channel, user, post, pid, thread, followup)
+    elif bot_id in text:
+        process_bot_call(channel, user, text, thread)
+
+if __name__ == "__main__":
+    from bot_config import *
+
+    bot_id = None
+    sc = SlackClient(token)
+    p = Piazza()
+    p.user_login(email=piazza_email, password=piazza_password)
+
+    if sc.rtm_connect():
+        username = sc.server.username
+        for users in sc.server.login_data['users']:
+            if users['name'] == username:
+                bot_id = users['id']
+                break
+        if not bot_id:
+            raise Error("Could not find bot")
+        while True:
+            results = sc.rtm_read()
+            for result in results:
+                try:
+                    if result['type'] == 'message':
+                        handle_message(result)
+                except Exception as e:
+                    print(e)
+                    sc.rtm_connect()
+            time.sleep(1)
+    else:
+        print("Connection Failed, invalid token?")
