@@ -227,21 +227,21 @@ def handle_message(result):
     thread = None
     if 'thread_ts' in result and result['thread_ts'] != result['ts']:
         thread = result['thread_ts']
-    if len(urls) > 0:
-        for piazza, post in urls:
-            print(piazza, post)
-            post_link(channel, user, post, piazza, thread)
-    if len(at_nums) > 0:
-        for course, post in at_nums:
-            print(course, post)
-            course = course.strip()
-            pid = other_piazza_ids[other_piazza_names.index(course)] if course else piazza_id
-            post_link(channel, user, post, pid, thread)
-    if len(at_nums_followup) > 0:
-        for course, post, followup in at_nums_followup:
-            print(course, post, followup)
-            course = course.strip()
-            pid = other_piazza_ids[other_piazza_names.index(course)] if course else piazza_id
+
+    posts = set()
+    for pid, post in urls:
+        posts.add((pid, post, None))
+    for course, post in at_nums:
+        course = course.strip()
+        pid = other_piazza_ids[other_piazza_names.index(course)] if course else piazza_id
+        posts.add((pid, post, None))
+    for course, post, followup in at_nums_followup:
+        course = course.strip()
+        pid = other_piazza_ids[other_piazza_names.index(course)] if course else piazza_id
+        posts.add((pid, post, followup))
+    
+    if len(posts) > 0:
+        for pid, post, followup in posts:
             post_link(channel, user, post, pid, thread, followup)
     elif bot_id in text:
         process_bot_call(channel, user, text, thread)
