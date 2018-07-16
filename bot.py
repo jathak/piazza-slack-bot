@@ -195,12 +195,12 @@ def format_html(html):
         links, images = find_md_links(text)
         for name, link in links:
             true_link = link
-            if link.startswith('/')
+            if link.startswith('/'):
                 true_link = 'https://piazza.com' + link
             text = text.replace('[%s](%s)'%(name, link), '<%s|%s>'%(true_link, name))
         for image in images:
             true_image = image
-            if image.startswith('/')
+            if image.startswith('/'):
                 true_image = 'https://piazza.com' + image
             text = text.replace('![](%s)'%(image), '<%s|Image>'%(true_image))
         first_image = None
