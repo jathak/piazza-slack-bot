@@ -206,6 +206,8 @@ def format_html(html):
         first_image = None
         if len(images) > 0:
             first_image = images[0]
+            if first_image.startswith('/'):
+                first_image = 'https://piazza.com' + first_image
         return text, first_image
     except Exception as e:
         traceback.print_exc()
