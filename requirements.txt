@@ -1,4 +1,4 @@
 slackclient
-piazza-api
+piazza-api>=0.7.0
 humanize
 html2text
