@@ -1,4 +1,4 @@
 slackclient
-piazza-api>=0.7.0
+git+git://github.com/hfaran/piazza-api.git@develop
 humanize
 html2text
